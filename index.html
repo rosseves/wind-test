@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Handy Golf — Shot Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b1a2e;
+  --bg2: #112240;
+  --bg3: #162d4a;
+  --border: #1e3a5f;
+  --green: #3ddc84;
+  --green-dim: #2ab56a;
+  --text: #ffffff;
+  --muted: #5a7a9a;
+  --sub: #8aaccc;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; background: var(--bg); }
+body { font-family: 'DM Sans', sans-serif; color: var(--text); display: flex; justify-content: center; padding: 0; }
+.shell { width: 100%; max-width: 420px; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* HEADER */
+.header { padding: 20px 20px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.logo { display: flex; align-items: center; gap: 2px; }
+.logo-h { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -.3px; }
+.logo-g { font-size: 20px; font-weight: 700; color: var(--green); letter-spacing: -.3px; }
+.header-tag { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+
+/* SCROLL BODY */
+.scroll { flex: 1; overflow-y: auto; padding: 24px 20px 40px; }
+
+/* SECTION LABELS */
+.lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+
+/* INPUT GRID */
+.ig { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.ig.full { grid-template-columns: 1fr; }
+.iblock { display: flex; flex-direction: column; gap: 6px; }
+.iblock label { font-size: 12px; font-weight: 600; color: var(--sub); }
+.iblock input {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  color: #fff; font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700;
+  padding: 12px 14px; width: 100%; text-align: center; outline: none;
+  -webkit-appearance: none; appearance: none;
+  transition: border-color .15s;
+}
+.iblock input:focus { border-color: var(--green); }
+
+/* WIND TABS */
+.wind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+.wtab {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--sub); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 11px 8px; text-align: center; cursor: pointer; line-height: 1.25;
+  transition: background .12s, border-color .12s, color .12s;
+  user-select: none;
+}
+.wtab span { display: block; font-size: 18px; margin-bottom: 2px; }
+.wtab.on { background: #142f1a; border-color: var(--green); color: var(--green); }
+.wtab:active { opacity: .8; }
+
+/* PLAYS LIKE BUTTON */
+.plays-btn {
+  width: 100%; padding: 17px; border-radius: 14px; border: none;
+  background: var(--green); color: #0b1a2e;
+  font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 800;
+  cursor: pointer; letter-spacing: -.2px; margin-bottom: 28px;
+  transition: background .15s, transform .1s;
+}
+.plays-btn:active { transform: scale(.98); background: var(--green-dim); }
+
+/* RESULT HERO */
+.result-hero {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+  padding: 28px 20px 22px; text-align: center; margin-bottom: 14px;
+  animation: fadeup .25s ease;
+}
+@keyframes fadeup { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.plays-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+.plays-number { font-size: 80px; font-weight: 800; color: var(--green); line-height: 1; letter-spacing: -3px; }
+.plays-unit { font-size: 20px; font-weight: 600; color: var(--sub); margin-top: 4px; }
+.plays-hint { font-size: 14px; font-weight: 500; color: var(--muted); margin-top: 10px; }
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.mstat { text-align: center; }
+.mstat-val { font-size: 17px; font-weight: 700; color: #fff; }
+.mstat-lbl { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* CLUBS */
+.club-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.club-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 13px 16px;
+  animation: fadeup .2s ease;
+}
+.club-row.best { background: #112a18; border-color: var(--green); }
+.club-left { display: flex; flex-direction: column; gap: 2px; }
+.club-name { font-size: 16px; font-weight: 700; color: #fff; }
+.club-aim { font-size: 12px; font-weight: 500; color: var(--muted); }
+.club-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.club-yds { font-size: 20px; font-weight: 800; color: var(--sub); }
+.club-yds.best-y { color: var(--green); }
+.pill { font-size: 10px; font-weight: 800; background: var(--green); color: #0b1a2e; border-radius: 20px; padding: 2px 9px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* HIDDEN */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="header">
+    <div class="logo"><span class="logo-h">Handy</span><span class="logo-g">Golf</span></div>
+    <div class="header-tag">Shot calculator</div>
+  </div>
+
+  <div class="scroll">
+
+    <div class="lbl">Your shot</div>
+    <div class="ig">
+      <div class="iblock">
+        <label>Distance (yds)</label>
+        <input type="number" id="dist" value="150" min="10" max="600" inputmode="numeric">
+      </div>
+      <div class="iblock">
+        <label>Temp (°F)</label>
+        <input type="number" id="temp" value="59" min="-4" max="122" inputmode="numeric">
+      </div>
+      <div class="iblock">
+        <label>Altitude (ft)</label>
+        <input type="number" id="alt" value="0" min="0" max="10000" inputmode="numeric">
+      </div>
+      <div class="iblock">
+        <label>Wind (mph)</label>
+        <input type="number" id="wind" value="0" min="0" max="60" inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="lbl">Wind direction</div>
+    <div class="wind-grid">
+      <div class="wtab on" data-w="into"    onclick="selTab(this)"><span>&#8595;</span>Into wind</div>
+      <div class="wtab"    data-w="down"    onclick="selTab(this)"><span>&#8593;</span>Downwind</div>
+      <div class="wtab"    data-w="cross_l" onclick="selTab(this)"><span>&#8594;</span>Cross left</div>
+      <div class="wtab"    data-w="cross_r" onclick="selTab(this)"><span>&#8592;</span>Cross right</div>
+      <div class="wtab"    data-w="into_l"  onclick="selTab(this)"><span>&#8601;</span>Into + left</div>
+      <div class="wtab"    data-w="into_r"  onclick="selTab(this)"><span>&#8600;</span>Into + right</div>
+      <div class="wtab"    data-w="down_l"  onclick="selTab(this)"><span>&#8598;</span>Down + left</div>
+      <div class="wtab"    data-w="down_r"  onclick="selTab(this)"><span>&#8599;</span>Down + right</div>
+    </div>
+
+    <button class="plays-btn" onclick="calc()">Plays like &#8594;</button>
+
+    <div id="result-section" class="hidden">
+      <div class="result-hero">
+        <div class="plays-label">Plays like</div>
+        <div class="plays-number" id="r-num">—</div>
+        <div class="plays-unit">yards</div>
+        <div class="plays-hint" id="r-hint"></div>
+        <div class="divider"></div>
+        <div class="mini-stats">
+          <div class="mstat"><div class="mstat-val" id="r-air">—</div><div class="mstat-lbl">Air effect</div></div>
+          <div class="mstat"><div class="mstat-val" id="r-wind">—</div><div class="mstat-lbl">Wind effect</div></div>
+          <div class="mstat"><div class="mstat-val" id="r-drift">—</div><div class="mstat-lbl">Drift</div></div>
+        </div>
+      </div>
+
+      <div class="lbl" style="margin-top:24px">Club guide</div>
+      <div class="club-list" id="club-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const clubs=[
+  {n:"3 wood",s:220,l:15},{n:"5 wood",s:200,l:18},{n:"3 iron",s:190,l:21},
+  {n:"4 iron",s:180,l:24},{n:"5 iron",s:170,l:27},{n:"6 iron",s:160,l:30},
+  {n:"7 iron",s:150,l:34},{n:"8 iron",s:140,l:38},{n:"9 iron",s:130,l:42},
+  {n:"PW",s:120,l:46},{n:"GW",s:110,l:50},{n:"SW",s:95,l:56},{n:"LW",s:80,l:60}
+];
+let dir = "into";
+
+function selTab(el) {
+  document.querySelectorAll(".wtab").forEach(t => t.classList.remove("on"));
+  el.classList.add("on");
+  dir = el.dataset.w;
+}
+
+function airDensity(tF, aFt) {
+  const tC = (tF - 32) * 5/9, aM = aFt * 0.3048, T = tC + 273.15;
+  const P = 101325 * Math.pow(1 - (0.0065 * aM) / 288.15, (9.81 * 0.02896) / (8.314 * 0.0065));
+  return (P * 0.02896) / (8.314 * T);
+}
+
+function wfx(std, mph, d, loft) {
+  const hc = {into:1,down:-1,cross_l:0,cross_r:0,into_l:.707,into_r:.707,down_l:-.707,down_r:-.707};
+  const cc = {into:0,down:0,cross_l:1,cross_r:1,into_l:.707,into_r:.707,down_l:.707,down_r:.707};
+  const carry = std * (1 + mph * hc[d] * 0.0035 * (1 + loft / 100));
+  const drift = Math.abs(mph * cc[d] * (std / 150) * 0.85);
+  const cd = (d.includes("_l") || d === "cross_l") ? "right" : (d.includes("_r") || d === "cross_r") ? "left" : null;
+  return { carry: Math.round(carry), drift: Math.round(drift), cd };
+}
+
+function calc() {
+  const dist  = +document.getElementById("dist").value || 150;
+  const tF    = +document.getElementById("temp").value || 59;
+  const aFt   = +document.getElementById("alt").value  || 0;
+  const mph   = +document.getElementById("wind").value || 0;
+
+  const rho = airDensity(tF, aFt);
+  const df  = rho / 1.225;
+  const ae  = (1 - df) * 100;
+
+  const hc = {into:1,down:-1,cross_l:0,cross_r:0,into_l:.707,into_r:.707,down_l:-.707,down_r:-.707};
+  const cc = {into:0,down:0,cross_l:1,cross_r:1,into_l:.707,into_r:.707,down_l:.707,down_r:.707};
+  const windYds = Math.round(mph * hc[dir] * (dir.includes("into") ? 0.4 : 0.3));
+  const padj    = Math.round(dist * (1 / df) + windYds);
+  const drift   = Math.round(Math.abs(mph * cc[dir] * (dist / 150) * 0.85));
+  const driftDir= (dir.includes("_l") || dir === "cross_l") ? "R" : (dir.includes("_r") || dir === "cross_r") ? "L" : null;
+
+  document.getElementById("r-num").textContent  = padj;
+  document.getElementById("r-air").textContent  = (ae > 0 ? "+" : "") + ae.toFixed(1) + "%";
+  document.getElementById("r-wind").textContent = (windYds > 0 ? "+" : "") + windYds + "y";
+  document.getElementById("r-drift").textContent= drift > 0 ? drift + "y " + driftDir : "—";
+  document.getElementById("r-hint").textContent =
+    padj > dist + 2 ? "Play one club more" :
+    padj < dist - 2 ? "Play one club less" : "Plays true distance";
+
+  const rows = clubs.map(c => {
+    const { carry, drift: cd, cd: cdir } = wfx(c.s, mph, dir, c.l);
+    const ac = Math.round(carry / df);
+    return { ...c, ac, drift: cd, cdir, diff: Math.abs(ac - dist) };
+  });
+  const best = rows.slice().sort((a, b) => a.diff - b.diff)[0];
+  const visible = rows.filter(c => c.ac >= dist - 30 && c.ac <= dist + 55);
+
+  document.getElementById("club-list").innerHTML = visible.map(c => {
+    const ib  = c.n === best.n;
+    const aim = c.drift > 1 ? `Aim ${c.drift}y ${c.cdir === "right" ? "right" : "left"} of pin` : "Straight at pin";
+    return `<div class="club-row${ib ? " best" : ""}">
+      <div class="club-left">
+        <div class="club-name">${c.n}</div>
+        <div class="club-aim">${aim}</div>
+      </div>
+      <div class="club-right">
+        ${ib ? '<span class="pill">Best</span>' : ""}
+        <div class="club-yds${ib ? " best-y" : ""}">${c.ac}y</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const sec = document.getElementById("result-section");
+  sec.classList.remove("hidden");
+  sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+</script>
+</body>
+</html>
